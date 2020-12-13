@@ -10,5 +10,8 @@ LIB=-lsfml-graphics -lsfml-system -lsfml-window -lGL -lGLU
 
 all: prog
 
-prog: main.o
+prog: main.o myvectors.o
 	$(CXX) $(CXXFLAGS) -o prog $^ $(LIB)
+
+myvectors.o:
+	$(CXX) $(CXXFLAGS) -c ../common/myvectors.cpp $^ $(LIB) -o $@

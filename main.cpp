@@ -4,8 +4,27 @@
 #include <math.h>
 #include "myvectors.h"
 
+const float DEG2RAD = 3.14159/180;
+
+void drawFlatTopHex(float radius) {
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0,0);
+    for (int i=0; i<7; i++) {
+        float rad = (i*(M_PI/3));
+        glVertex2f(cos(rad)*radius, -sin(rad)*radius);
+    }
+    glEnd();
+}
+
 class HexTile {
+public:
     vector2i axial;
+    void draw() {
+        glPushMatrix();
+        //glTranslatef(drawPosition())
+        drawFlatTopHex(10);
+        glPopMatrix();
+    }
 };
 
 void glEnable2D() {
@@ -42,8 +61,6 @@ void glDisable2D() {
     glPopMatrix();
 }
 
-const float DEG2RAD = 3.14159/180;
-
 void drawCircle(float radius) {
     glBegin(GL_TRIANGLE_FAN);
     for (int i=0; i<360; i++) {
@@ -53,9 +70,11 @@ void drawCircle(float radius) {
     glEnd();
 }
 
-float x = 50;
+HexTile hexTile;
 
 int main (int argc, char **argv) {
+    hexTile.axial = vector2i(1,1);
+
     sf::RenderWindow window(sf::VideoMode(640, 480), "OpenGL Test", sf::Style::Close | sf::Style::Titlebar);
 
     // Your own custom OpenGL setup calls here
@@ -71,7 +90,6 @@ int main (int argc, char **argv) {
                     window.close();
                     break;
                 case sf::Event::KeyPressed:
-                    x += 1;
                     break;
             }
         }
@@ -83,8 +101,8 @@ int main (int argc, char **argv) {
 
                 glEnable2D();
                 glPushMatrix();
-                glTranslatef(x,50,0);
-                drawCircle(5);
+                glTranslatef(50,50,0);
+                hexTile.draw();
                 glPopMatrix();
                 glDisable2D();
 
