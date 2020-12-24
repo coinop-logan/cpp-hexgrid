@@ -19,14 +19,60 @@ void drawFlatTopHex(float circumRadius) {
     glEnd();
 }
 
+class Map;
+
+enum class TileType { Dirt, Grass, Wall, Water };
+
+class HexTile {
+    TileType tileType;
+    vector2i axialPos;
+    Map *map;
+public:
+    HexTile();
+    HexTile(TileType _tileType, vector2i _axialPos, Map *_map);
+    Map *refMap();
+    vector2f coMapPos();
+    void drawHere();
+    void drawAtPos();
+};
+
+const int MAX_MAP_DIM = 100;
+
 class Map {
     float tileCircumradius;
+    vector2i dimensions;
+    HexTile tiles[MAX_MAP_DIM][MAX_MAP_DIM];
+
+    // void setScale(float _tileCircumradius) {
+    //     tileCircumradius = _tileCircumradius;
+    // }
 public:
-    Map(float _tileCircumradius) {
+    Map(float _tileCircumradius, int width, int height) {
+        if ( width >= MAX_MAP_DIM || height >= MAX_MAP_DIM) {
+            throw "Map dimensions exceed max";
+        }
+
+        dimensions = vector2i(width, height);
         tileCircumradius = _tileCircumradius;
+        // cout << width << "," << height << endl;
+        for (int q=0; q < width; q++) {
+            for (int r=0; r < height; r++) {
+                // cout << q << "," << r << endl;
+                TileType type = TileType::Dirt;
+
+                if ((q == 0 || r%4 == 0) && q !=5) {
+                    type = TileType::Wall;
+                }
+                if (r + q == 25) {
+                    type = TileType::Water;
+                }
+
+                tiles[q][r] = HexTile(type, vector2i(q,r), this);
+            }
+        }
     }
-    void setScale(float _tileCircumradius) {
-        tileCircumradius = _tileCircumradius;
+    void generate() {
+
     }
     // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
     float coScale() { // 'copy of Scale'
@@ -41,53 +87,60 @@ public:
     float coTileShortwidth() {
         return coTileLongwidth() * 3.0/4.0;
     }
-};
 
-enum class TileType { Dirt, Grass, Wall } ;
-
-class HexTile {
-    TileType tileType;
-    vector2i axialPos;
-    Map *map;
-    ;
-public:
-    HexTile(TileType _tileType, vector2i _axialPos, Map *_map) {
-        tileType = _tileType;
-        axialPos = _axialPos;
-        map = _map;
-    }
-    Map *refMap() {
-        return map;
-    }
-    vector2f coMapPos() {
-        return vector2f(
-            map->coTileLongwidth() * (3./4 * axialPos.x),
-            map->coTileLongwidth() * (sqrt(3)/4 * axialPos.x  +  sqrt(3)/2 * axialPos.y)
-        );
-    }
     void drawHere() {
-        switch (tileType) {
-            case TileType::Dirt:
-                glColor3f(.6, .4, 0);
-                break;
-            case TileType::Grass:
-                glColor3f(0,1,0);
-                break;
-            case TileType::Wall:
-                glColor3f(0.4,0.4,0.4);
-                break;
+        for (int q=0; q < dimensions.x; q++) {
+            for (int r=0; r < dimensions.y; r++) {
+                tiles[q][r].drawAtPos();
+            }
         }
-        drawFlatTopHex(map->coTileCircumradius());
-        
-    }
-    void drawAtPos() {
-        vector2f offset = coMapPos();
-        glPushMatrix();
-        glTranslatef(offset.x,offset.y,0);
-        drawHere();
-        glPopMatrix();
     }
 };
+
+HexTile::HexTile(TileType _tileType, vector2i _axialPos, Map *_map) {
+    tileType = _tileType;
+    axialPos = _axialPos;
+    map = _map;
+}
+HexTile::HexTile() {}
+
+Map *HexTile::refMap() {
+    return map;
+}
+vector2f HexTile::coMapPos() {
+    return vector2f(
+        map->coTileLongwidth() * (3./4 * axialPos.x),
+        map->coTileLongwidth() * (sqrt(3)/4 * axialPos.x  +  sqrt(3)/2 * axialPos.y)
+    );
+}
+void HexTile::drawHere() {
+    switch (tileType) {
+        case TileType::Dirt:
+            glColor3f(.6, .4, 0);
+            break;
+        case TileType::Grass:
+            glColor3f(0,1,0);
+            break;
+        case TileType::Wall:
+            glColor3f(0.4,0.4,0.4);
+            break;
+        case TileType::Water:
+            glColor3f(0, 0, 1);
+            break;
+        default:
+            throw "HexTile::drawHere: unrecognized tileType";
+    }
+    drawFlatTopHex(map->coTileCircumradius());
+    
+}
+void HexTile::drawAtPos() {
+    vector2f offset = coMapPos();
+    // cout << offset.x << "," << offset.y <<  endl;
+    glPushMatrix();
+    glTranslatef(offset.x,offset.y,0);
+    drawHere();
+    glPopMatrix();
+}
 
 void glEnable2D() {
     GLint iViewport[4];
@@ -134,19 +187,18 @@ void glDisable2D() {
 // }
 
 int main (int argc, char **argv) {
-    Map map(16);
+    Map map(16, 50, 50);
+    map.generate();
 
-    HexTile hexTile1(TileType::Dirt, vector2i(0,0), &map);
-    HexTile hexTile2(TileType::Grass, vector2i(1,0), &map);
-    HexTile hexTile3(TileType::Wall, vector2i(0,1), &map);
+    // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
 
-    cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
+    // cout << hexTile1.coMapPos().x << "," << hexTile1.coMapPos().y << endl;
+    // cout << hexTile2.coMapPos().x << "," << hexTile2.coMapPos().y << endl;
+    // cout << hexTile3.coMapPos().x << "," << hexTile3.coMapPos().y << endl;
 
-    cout << hexTile1.coMapPos().x << "," << hexTile1.coMapPos().y << endl;
-    cout << hexTile2.coMapPos().x << "," << hexTile2.coMapPos().y << endl;
-    cout << hexTile3.coMapPos().x << "," << hexTile3.coMapPos().y << endl;
-
-    sf::RenderWindow window(sf::VideoMode(640, 480), "OpenGL Test", sf::Style::Close | sf::Style::Titlebar);
+    // sf::RenderWindow window(sf::VideoMode(1920, 1080), "HexStuff", sf::Style::Fullscreen);
+    // unfortunately renders on the non-streaming window
+    sf::RenderWindow window(sf::VideoMode(1800, 950), "HexStuff", sf::Style::Close | sf::Style::Titlebar);
 
     // Your own custom OpenGL setup calls here
     // There's no additional code needed, unless you want to mix SFML drawing and raw OpenGL
@@ -172,9 +224,7 @@ int main (int argc, char **argv) {
                 glEnable2D();
                 glPushMatrix();
                 glTranslatef(100,100,0);
-                hexTile1.drawAtPos();
-                hexTile2.drawAtPos();
-                hexTile3.drawAtPos();
+                map.drawHere();
                 glPopMatrix();
                 glDisable2D();
 
