@@ -68,7 +68,7 @@ public:
     void drawHere() {
         switch (tileType) {
             case TileType::Dirt:
-                glColor3f(.8, .6, 0);
+                glColor3f(.6, .4, 0);
                 break;
             case TileType::Grass:
                 glColor3f(0,1,0);
