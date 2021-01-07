@@ -19,6 +19,15 @@ void drawFlatTopHex(float circumRadius) {
     glEnd();
 }
 
+void drawFlatTopHexBorder(float circumRadius) {
+    glBegin(GL_LINE_LOOP);
+    for (int i=0; i<6; i++) {
+        float rad = (i*M_PI/3);
+        glVertex2f(cos(rad) * circumRadius, -sin(rad) * circumRadius);
+    }
+    glEnd();
+}
+
 class Map;
 
 enum class TileType { Dirt, Grass, Wall, Water };
@@ -75,11 +84,11 @@ public:
 
     }
     // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
-    float coScale() { // 'copy of Scale'
+    float coTileCircumradius() { // 'copy of circumRadius'
         return tileCircumradius;
     }
-    float coTileCircumradius() { // helpful synonym
-        return coScale();
+    float coScale() { // helpful synonym
+        return coTileCircumradius();
     }
     float coTileLongwidth() {
         return tileCircumradius * 2;
@@ -131,6 +140,8 @@ void HexTile::drawHere() {
             throw "HexTile::drawHere: unrecognized tileType";
     }
     drawFlatTopHex(map->coTileCircumradius());
+    glColor3f(0,0,0);
+    drawFlatTopHexBorder(map->coTileCircumradius());
     
 }
 void HexTile::drawAtPos() {
