@@ -64,24 +64,30 @@ public:
         dimensions = vector2i(width, height);
         tileCircumradius = _tileCircumradius;
         // cout << width << "," << height << endl;
-        for (int q=0; q < width; q++) {
-            for (int r=0; r < height; r++) {
+    }
+    void generate() {
+        for (int q=0; q < dimensions.x; q++) {
+            for (int r=0; r < dimensions.y; r++) {
                 // cout << q << "," << r << endl;
                 TileType type = TileType::Dirt;
 
-                if ((q == 0 || r%4 == 0) && q !=5) {
+                // if ((q == 0 || r%4 == 0) && q !=5) {
+                //     type = TileType::Wall;
+                // }
+                // if (r + q == 25) {
+                //     type = TileType::Water;
+                // }
+
+                if (rand() % 20 == 0) {
                     type = TileType::Wall;
                 }
-                if (r + q == 25) {
+                else if (q+r == 42) {
                     type = TileType::Water;
                 }
 
                 tiles[q][r] = HexTile(type, vector2i(q,r), this);
             }
         }
-    }
-    void generate() {
-
     }
     // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
     float coTileCircumradius() { // 'copy of circumRadius'
@@ -125,7 +131,7 @@ vector2f HexTile::coMapPos() {
 void HexTile::drawHere() {
     switch (tileType) {
         case TileType::Dirt:
-            glColor3f(.6, .4, 0);
+            glColor3f(1, 1, 1);
             break;
         case TileType::Grass:
             glColor3f(0,1,0);
@@ -134,7 +140,7 @@ void HexTile::drawHere() {
             glColor3f(0.4,0.4,0.4);
             break;
         case TileType::Water:
-            glColor3f(0, 0, 1);
+            glColor3f(0.7, 0.7, 0.7);
             break;
         default:
             throw "HexTile::drawHere: unrecognized tileType";
@@ -198,8 +204,10 @@ void glDisable2D() {
 // }
 
 int main (int argc, char **argv) {
-    Map map(16, 50, 50);
+    Map map(32, 50, 50);
     map.generate();
+
+    // HexTile* viewTargetTile = &(map.getTile(vector2i(0,0)));
 
     // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
 
@@ -207,9 +215,9 @@ int main (int argc, char **argv) {
     // cout << hexTile2.coMapPos().x << "," << hexTile2.coMapPos().y << endl;
     // cout << hexTile3.coMapPos().x << "," << hexTile3.coMapPos().y << endl;
 
-    // sf::RenderWindow window(sf::VideoMode(1920, 1080), "HexStuff", sf::Style::Fullscreen);
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "HexStuff", sf::Style::Fullscreen);
     // unfortunately renders on the non-streaming window
-    sf::RenderWindow window(sf::VideoMode(1800, 950), "HexStuff", sf::Style::Close | sf::Style::Titlebar);
+    // sf::RenderWindow window(sf::VideoMode(1800, 950), "HexStuff", sf::Style::Close | sf::Style::Titlebar);
 
     // Your own custom OpenGL setup calls here
     // There's no additional code needed, unless you want to mix SFML drawing and raw OpenGL
@@ -234,7 +242,7 @@ int main (int argc, char **argv) {
 
                 glEnable2D();
                 glPushMatrix();
-                glTranslatef(100,100,0);
+                glTranslatef(0,-1200,0);
                 map.drawHere();
                 glPopMatrix();
                 glDisable2D();
