@@ -198,7 +198,7 @@ void glDisable2D() {
 // }
 
 int main (int argc, char **argv) {
-    Map map(16, 50, 50);
+    Map map(32, 50, 50);
     map.generate();
 
     // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
@@ -234,7 +234,7 @@ int main (int argc, char **argv) {
 
                 glEnable2D();
                 glPushMatrix();
-                glTranslatef(100,100,0);
+                glTranslatef(100,-500,0);
                 map.drawHere();
                 glPopMatrix();
                 glDisable2D();
