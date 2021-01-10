@@ -3,7 +3,9 @@
 #include <GL/glu.h>
 #include <math.h>
 #include "myvectors.h"
+#include "hexgrid.cpp"
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 
 using namespace std;
 
@@ -30,16 +32,31 @@ void drawFlatTopHexBorder(float circumRadius) {
 
 class Map;
 
+class Track {
+    ptHexGrid::Direction startDir;
+    bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
+public:
+    Track(ptHexGrid::Direction _startDir, bool _exits[3]) {
+        startDir = _startDir;
+        for (int i=0; i<sizeof(exits); i++) {
+            exits[i] = _exits[i];
+        }
+    }
+};
+
 enum class TileType { Dirt, Grass, Wall, Water };
 
 class HexTile {
+    Map *map;
     TileType tileType;
     vector2i axialPos;
-    Map *map;
+    boost::shared_ptr<Track> track;
 public:
     HexTile();
     HexTile(TileType _tileType, vector2i _axialPos, Map *_map);
     Map *refMap();
+    boost::shared_ptr<Track> refTrack();
+    void setTrack(boost::shared_ptr<Track> track);
     vector2f coMapPos();
     void drawHere();
     void drawAtPos();
@@ -113,8 +130,14 @@ HexTile::HexTile(TileType _tileType, vector2i _axialPos, Map *_map) {
 }
 HexTile::HexTile() {}
 
-Map *HexTile::refMap() {
+Map* HexTile::refMap() {
     return map;
+}
+boost::shared_ptr<Track> HexTile::refTrack() {
+    return track;
+}
+void HexTile::setTrack(boost::shared_ptr<Track> newTrack) {
+    track = newTrack;
 }
 vector2f HexTile::coMapPos() {
     return vector2f(
