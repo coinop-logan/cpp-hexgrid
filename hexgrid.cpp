@@ -2,52 +2,6 @@
 #include "hexgrid.h"
 
 namespace ptHexGrid {
-    Direction dirTurnedCCWOnce(Direction dir) {
-        switch (dir) {
-            case Right:
-                return UpRight;
-                break;
-            case UpRight:
-                return UpLeft;
-                break;
-            case UpLeft:
-                return Left;
-                break;
-            case Left:
-                return DownLeft;
-                break;
-            case DownLeft:
-                return DownRight;
-                break;
-            case DownRight:
-                return Right;
-                break;
-        }
-    }
-
-    Direction dirTurnedCWOnce(Direction dir) {
-        switch (dir) {
-            case UpRight:
-                return Right;
-                break;
-            case UpLeft:
-                return UpRight;
-                break;
-            case Left:
-                return UpLeft;
-                break;
-            case DownLeft:
-                return Left;
-                break;
-            case DownRight:
-                return DownLeft;
-                break;
-            case Right:
-                return DownRight;
-                break;
-        }
-    }
-
     float directionToAngle(Direction dir) {
         switch (dir) {
             case Right:
@@ -71,20 +25,85 @@ namespace ptHexGrid {
         }
     }
 
+    vector2i directionToAxial(Direction dir) {
+        switch (dir) {
+            case Right:
+                return vector2i(1, 0);
+                break;
+            case UpRight:
+                return vector2i(1, -1);
+                break;
+            case UpLeft:
+                return vector2i(0, -1);
+                break;
+            case Left:
+                return vector2i(-1, 0);
+                break;
+            case DownLeft:
+                return vector2i(-1, 1);
+                break;
+            case DownRight:
+                return vector2i(0, 1);
+                break;
+        }
+    }
+
+    Direction dirTurnedCCWOnce(Direction dir) {
+        switch (dir) {
+            case Right:
+                return UpRight;
+                break;
+            case UpRight:
+                return UpLeft;
+                break;
+            case UpLeft:
+                return Left;
+                break;
+            case Left:
+                return DownLeft;
+                break;
+            case DownLeft:
+                return DownRight;
+                break;
+            case DownRight:
+                return Right;
+                break;
+        }
+    }
+    Direction dirTurnedCWOnce(Direction dir) {
+        switch (dir) {
+            case UpRight:
+                return Right;
+                break;
+            case UpLeft:
+                return UpRight;
+                break;
+            case Left:
+                return UpLeft;
+                break;
+            case DownLeft:
+                return Left;
+                break;
+            case DownRight:
+                return DownLeft;
+                break;
+            case Right:
+                return DownRight;
+                break;
+        }
+    }
     Direction dirTurnedCCW(Direction dir, int numTimes) {
         for (int i=0; i<numTimes; i++) {
             dir = dirTurnedCCWOnce(dir);
         }
         return dir;
     }
-
     Direction dirTurnedCW(Direction dir, int numTimes) {
         for (int i=0; i<numTimes; i++) {
             dir = dirTurnedCWOnce(dir);
         }
         return dir;
     }
-
     Direction dirTurned(Direction dir, int signedNumTimes) {
 
         if (signedNumTimes > 0) {
@@ -94,7 +113,6 @@ namespace ptHexGrid {
             return dirTurnedCCW(dir, -signedNumTimes);
         }
     }
-
     Direction reverseDirection(Direction dir) {
         switch (dir) {
             case UpRight:
@@ -119,28 +137,7 @@ namespace ptHexGrid {
     }
 
     vector2i getNeighborInDirection(vector2i startAxial, Direction dir) {
-        vector2i offset;
-        switch (dir) {
-            case Right:
-                offset = vector2i(1, 0);
-                break;
-            case UpRight:
-                offset = vector2i(1, -1);
-                break;
-            case UpLeft:
-                offset = vector2i(0, -1);
-                break;
-            case Left:
-                offset = vector2i(-1, 0);
-                break;
-            case DownLeft:
-                offset = vector2i(-1, 1);
-                break;
-            case DownRight:
-                offset = vector2i(0, 1);
-                break;
-        }
-        return startAxial + offset;
+        return startAxial + directionToAxial(dir);
     }
 
     vector2f axialToReal(vector2i axial, float circumRadius) {

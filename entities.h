@@ -15,7 +15,7 @@ class Track {
     bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
 public:
     Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]);
-    void draw();
+    void drawHere();
 };
 
 enum class TileType { Dirt, Grass, Wall, Water };

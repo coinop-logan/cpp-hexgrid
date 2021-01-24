@@ -9,6 +9,7 @@ namespace ptHexGrid {
     };
 
     float directionToAngle(Direction dir);
+    vector2i directionToAxial(Direction dir);
     Direction dirTurnedCCWOnce(Direction dir);
     Direction dirTurnedCWOnce(Direction dir);
     Direction dirTurnedCCW(Direction dir, int numTimes);
@@ -19,7 +20,6 @@ namespace ptHexGrid {
     const vector2f qBasis(sqrt(3), 0);
     const vector2f rBasis(sqrt(3)/2.0, 3/2.0);
     vector2f axialToReal(vector2i axial, float circumRadius);
-    
 }
 
 namespace ftHexGrid {

@@ -11,7 +11,7 @@ LIB=-lsfml-graphics -lsfml-system -lsfml-window -lGL -lGLU
 all: prog
 
 prog: main.o myvectors.o hexgrid.o
-	$(CXX) $(CXXFLAGS) -o prog $^ $(LIB)
+	$(CXX) $(CXXFLAGS) -o hexstuff $^ $(LIB)
 
 myvectors.o:
 	$(CXX) $(CXXFLAGS) -c ../common/myvectors.cpp $^ $(LIB) -o $@
