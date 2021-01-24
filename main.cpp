@@ -97,7 +97,7 @@ int main (int argc, char **argv) {
     Map map(32, 50, 50);
     map.generate();
     HexTile* testTile = map.refTile(vector2i(1, 22));
-    bool trackExits[] = {true, false, false};
+    bool trackExits[] = {true, true, true};
     testTile->setTrack(boost::shared_ptr<Track>(new Track(testTile, ptHexGrid::Right, trackExits)));
 
     // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;

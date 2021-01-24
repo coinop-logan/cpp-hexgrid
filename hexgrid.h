@@ -4,6 +4,8 @@
 #define HEXGRID_H
 
 namespace ptHexGrid {
+    float getInradius(float circumradius);
+
     enum Direction {
         Right, UpRight, UpLeft, Left, DownLeft, DownRight
     };

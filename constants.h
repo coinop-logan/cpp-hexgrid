@@ -7,4 +7,6 @@ const int MAX_MAP_DIM = 100;
 
 const int RAIL_CURVE_NUM_POINTS = 10;
 
+const float TRACK_DRAW_HALFWIDTH_OVER_CIRCUMRADIUS = 0.15;
+
 #endif

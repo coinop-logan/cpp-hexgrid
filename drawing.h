@@ -1,7 +1,10 @@
 #ifndef DRAWING_H
 #define DRAWING_H
 
+#include "myvectors.h"
 #include "entities.h"
+
+void glVertex2f(vector2f);
 
 void drawFTHex(float circumRadius);
 void drawFTHexBorder(float circumRadius);

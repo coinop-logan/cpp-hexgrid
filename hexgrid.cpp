@@ -2,6 +2,9 @@
 #include "hexgrid.h"
 
 namespace ptHexGrid {
+    float getInradius(float circumradius) {
+        return circumradius * (sqrt(3) / 2);
+    }
     float directionToAngle(Direction dir) {
         switch (dir) {
             case Right:
