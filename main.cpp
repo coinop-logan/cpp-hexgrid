@@ -3,7 +3,7 @@
 #include <GL/glu.h>
 #include <math.h>
 #include "myvectors.h"
-#include "hexgrid.cpp"
+#include "hexgrid.h"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
@@ -11,7 +11,7 @@ using namespace std;
 
 const float DEG2RAD = 3.14159/180;
 
-void drawFlatTopHex(float circumRadius) {
+void drawFTHex(float circumRadius) {
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(0,0);
     for (int i=0; i<7; i++) {
@@ -21,7 +21,7 @@ void drawFlatTopHex(float circumRadius) {
     glEnd();
 }
 
-void drawFlatTopHexBorder(float circumRadius) {
+void drawFTHexBorder(float circumRadius) {
     glBegin(GL_LINE_LOOP);
     for (int i=0; i<6; i++) {
         float rad = (i*M_PI/3);
@@ -30,19 +30,61 @@ void drawFlatTopHexBorder(float circumRadius) {
     glEnd();
 }
 
-class Map;
-
-class Track {
-    ptHexGrid::Direction startDir;
-    bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
-public:
-    Track(ptHexGrid::Direction _startDir, bool _exits[3]) {
-        startDir = _startDir;
-        for (int i=0; i<sizeof(exits); i++) {
-            exits[i] = _exits[i];
-        }
+void drawPTHex(float circumRadius) {
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0,0);
+    for (int i=0; i<7; i++) {
+        float rad = (M_PI/6) + (i*(M_PI/3));
+        glVertex2f(cos(rad)*circumRadius, -sin(rad)*circumRadius);
     }
-};
+    glEnd();
+}
+
+void drawPTHexBorder(float circumRadius) {
+    glBegin(GL_LINE_LOOP);
+    for (int i=0; i<6; i++) {
+        float rad = (M_PI/6) + (i*M_PI/3);
+        glVertex2f(cos(rad) * circumRadius, -sin(rad) * circumRadius);
+    }
+    glEnd();
+}
+
+class Map;
+class HexTile;
+class Track;
+
+// class Track {
+//     HexTile* hexTile;
+//     ptHexGrid::Direction startDir;
+//     bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
+// public:
+//     Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) {
+//         hexTile = _hexTile;
+//         startDir = _startDir;
+//         for (int i=0; i<sizeof(exits); i++) {
+//             exits[i] = _exits[i];
+//         }
+//     }
+//     void draw() {
+//         if (exits[0]) {
+//             ptHexGrid::Direction towardNeighborForCircleCenter = dirTurnedCCW(startDir, 2);
+//             vector2i neighborAxial = ptHexGrid::getNeighborInDirection(hexTile->coAxialPos(), towardNeighborForCircleCenter);
+//             vector2f circleDrawCenter = hexTile->refMap()->refTile(neighborAxial)->coMapPos();
+//             ptHexGrid::Direction towardArc = ptHexGrid::reverseDirection(towardNeighborForCircleCenter);
+//             float arcStartAngle = ptHexGrid::directionToAngle(towardArc) - M_PI/6;
+//             float circleDrawRadius = hexTile->refMap()->coTileCircumradius() * 1.1;
+
+//             glTranslatef(circleDrawCenter.x, circleDrawCenter.y, 0);
+//             glBegin(GL_LINES);
+//             glColor3f(0,0,1);
+//             for (int i=0; i <= RAIL_CURVE_NUM_POINTS; i++) {
+//                 float angle = arcStartAngle + ((float(i) / RAIL_CURVE_NUM_POINTS) * (M_PI/3));
+//                 glVertex2f(cos(angle) * circleDrawRadius, -sin(angle) * circleDrawRadius);
+//             }
+//             glEnd();
+//         }
+//     }
+// };
 
 enum class TileType { Dirt, Grass, Wall, Water };
 
@@ -57,6 +99,7 @@ public:
     Map *refMap();
     boost::shared_ptr<Track> refTrack();
     void setTrack(boost::shared_ptr<Track> track);
+    vector2i coAxialPos();
     vector2f coMapPos();
     void drawHere();
     void drawAtPos();
@@ -100,6 +143,12 @@ public:
     void generate() {
 
     }
+    HexTile* refTile(vector2i axial) {
+        if (axial.x >= dimensions.x || axial.y >= dimensions.y) {
+            throw "axial pos out of map bounds";
+        }
+        return &(tiles[axial.x][axial.y]);
+    }
     // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
     float coTileCircumradius() { // 'copy of circumRadius'
         return tileCircumradius;
@@ -139,7 +188,11 @@ boost::shared_ptr<Track> HexTile::refTrack() {
 void HexTile::setTrack(boost::shared_ptr<Track> newTrack) {
     track = newTrack;
 }
+vector2i HexTile::coAxialPos() {
+    return axialPos;
+}
 vector2f HexTile::coMapPos() {
+    return ptHexGrid::axialToReal(axialPos, map->coTileCircumradius());
     return vector2f(
         map->coTileLongwidth() * (3./4 * axialPos.x),
         map->coTileLongwidth() * (sqrt(3)/4 * axialPos.x  +  sqrt(3)/2 * axialPos.y)
@@ -162,9 +215,9 @@ void HexTile::drawHere() {
         default:
             throw "HexTile::drawHere: unrecognized tileType";
     }
-    drawFlatTopHex(map->coTileCircumradius());
+    drawPTHex(map->coTileCircumradius());
     glColor3f(0,0,0);
-    drawFlatTopHexBorder(map->coTileCircumradius());
+    drawPTHexBorder(map->coTileCircumradius());
     
 }
 void HexTile::drawAtPos() {

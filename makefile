@@ -10,7 +10,7 @@ LIB=-lsfml-graphics -lsfml-system -lsfml-window -lGL -lGLU
 
 all: prog
 
-prog: main.o myvectors.o
+prog: main.o myvectors.o hexgrid.o
 	$(CXX) $(CXXFLAGS) -o prog $^ $(LIB)
 
 myvectors.o:
