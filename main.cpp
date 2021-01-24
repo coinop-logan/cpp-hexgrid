@@ -18,7 +18,7 @@ Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) 
     }
 }
 
-Map::Map(float _tileCircumradius, int width, int height) {
+GameMap::GameMap(float _tileCircumradius, int width, int height) {
     if ( width >= MAX_MAP_DIM || height >= MAX_MAP_DIM) {
         throw "Map dimensions exceed max";
     }
@@ -27,7 +27,7 @@ Map::Map(float _tileCircumradius, int width, int height) {
     tileCircumradius = _tileCircumradius;
     // cout << width << "," << height << endl;
 }
-void Map::generate() {
+void GameMap::generate() {
     for (int q=0; q < dimensions.x; q++) {
         for (int r=0; r < dimensions.y; r++) {
             // cout << q << "," << r << endl;
@@ -44,34 +44,34 @@ void Map::generate() {
         }
     }
 }
-HexTile* Map::refTile(vector2i axial) {
+HexTile* GameMap::refTile(vector2i axial) {
     if (axial.x >= dimensions.x || axial.y >= dimensions.y) {
         throw "axial pos out of map bounds";
     }
     return &(tiles[axial.x][axial.y]);
 }
 // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
-float Map::coTileCircumradius() { // 'copy of circumRadius'
+float GameMap::coTileCircumradius() { // 'copy of circumRadius'
     return tileCircumradius;
 }
-float Map::coScale() { // helpful synonym
+float GameMap::coScale() { // helpful synonym
     return coTileCircumradius();
 }
-float Map::coTileLongwidth() {
+float GameMap::coTileLongwidth() {
     return tileCircumradius * 2;
 }
-float Map::coTileShortwidth() {
+float GameMap::coTileShortwidth() {
     return coTileLongwidth() * 3.0/4.0;
 }
 
-HexTile::HexTile(TileType _tileType, vector2i _axialPos, Map *_map) {
+HexTile::HexTile(TileType _tileType, vector2i _axialPos, GameMap *_map) {
     tileType = _tileType;
     axialPos = _axialPos;
     map = _map;
 }
 HexTile::HexTile() {}
 
-Map* HexTile::refMap() {
+GameMap* HexTile::refMap() {
     return map;
 }
 boost::shared_ptr<Track> HexTile::refTrack() {
@@ -91,14 +91,39 @@ vector2f HexTile::coMapPos() {
     );
 }
 
+GameMap gameMap(32, 50, 50);
+HexTile* currentTile;
+ptHexGrid::Direction currentDir;
 
+void layTrack(TrackCurveType curveType) {
+    ptHexGrid::Direction nextTileDir;
+    bool trackExits[] = { false, false, false};
+
+    switch (curveType) {
+        case TrackCurveType::Straight:
+            nextTileDir = currentDir;
+            trackExits[1] = true;
+            break;
+        case TrackCurveType::CurveLeft:
+            nextTileDir = ptHexGrid::dirTurnedCCWOnce(currentDir);
+            trackExits[0] = true;
+            break;
+        case TrackCurveType::CurveRight:
+            nextTileDir = ptHexGrid::dirTurnedCWOnce(currentDir);
+            trackExits[2] = true;
+            break;
+    }
+
+    currentTile->setTrack(boost::shared_ptr<Track>(new Track(currentTile, currentDir, trackExits)));
+    currentTile = gameMap.refTile(ptHexGrid::getNeighborInDirection(currentTile->coAxialPos(), nextTileDir));
+    currentDir = nextTileDir;
+}
 
 int main (int argc, char **argv) {
-    Map map(32, 50, 50);
-    map.generate();
-    HexTile* testTile = map.refTile(vector2i(1, 22));
-    bool trackExits[] = {true, true, true};
-    testTile->setTrack(boost::shared_ptr<Track>(new Track(testTile, ptHexGrid::Right, trackExits)));
+    gameMap.generate();
+
+    currentDir = ptHexGrid::Right;
+    currentTile = gameMap.refTile(vector2i(1, 22));
 
     // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
 
@@ -113,22 +138,33 @@ int main (int argc, char **argv) {
     // Your own custom OpenGL setup calls here
     // There's no additional code needed, unless you want to mix SFML drawing and raw OpenGL
 
-    sf::Event e;
+    sf::Event event;
 
     while (window.isOpen()) { // This is the program's main loop
 
-        while (window.pollEvent(e)) { // Event handling
-            switch (e.type) {
+        while (window.pollEvent(event)) { // Event handling
+            switch (event.type) {
                 case sf::Event::Closed:
                     window.close();
                     break;
                 case sf::Event::KeyPressed:
+                    switch (event.key.code) {
+                        case sf::Keyboard::Up:
+                            layTrack(TrackCurveType::Straight);
+                            break;
+                        case sf::Keyboard::Left:
+                            layTrack(TrackCurveType::CurveLeft);
+                            break;
+                        case sf::Keyboard::Right:
+                            layTrack(TrackCurveType::CurveRight);
+                            break;
+                    }
                     break;
             }
         }
         window.clear(); // Clear the buffer
 
-        draw(&map);
+        draw(&gameMap);
 
         window.display(); // Update window contents
     }

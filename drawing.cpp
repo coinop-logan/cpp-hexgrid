@@ -5,7 +5,7 @@
 #include "entities.h"
 
 void glVertex2f(vector2f vec) {
-    glVertex2f(vec.x, vec.y);
+    glVertex2f(vec.x, -vec.y);
 }
 
 void drawFTHex(float circumRadius) {
@@ -48,7 +48,7 @@ void drawPTHexBorder(float circumRadius) {
 
 void drawCurvedTrack(ptHexGrid::Direction startDir, bool left, float circumradius) {
     // find the center of the circle to draw the arc from - a nearby tile neighbor.
-    ptHexGrid::Direction towardNeighborForCircleCenter = dirTurned(startDir, left ? 2 : - 2);
+    ptHexGrid::Direction towardNeighborForCircleCenter = dirTurned(startDir, left ? -2 : 2);
     vector2i circleCenterAxial = ptHexGrid::directionToAxial(towardNeighborForCircleCenter);
     vector2f circleCenter = ptHexGrid::axialToReal(circleCenterAxial, circumradius);
 
@@ -119,7 +119,7 @@ void Track::drawHere() {
     }
 }
 
-void Map::drawHere() {
+void GameMap::drawHere() {
     for (int q=0; q < dimensions.x; q++) {
         for (int r=0; r < dimensions.y; r++) {
             tiles[q][r].drawAtPos();
@@ -195,7 +195,7 @@ void glDisable2D() {
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 }
-void draw(Map *map) {
+void draw(GameMap *map) {
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
 

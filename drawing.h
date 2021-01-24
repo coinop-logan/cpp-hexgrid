@@ -14,6 +14,6 @@ void drawPTHexBorder(float circumRadius);
 void glEnable2D();
 void glDisable2D();
 
-void draw(Map *map);
+void draw(GameMap *map);
 
 #endif

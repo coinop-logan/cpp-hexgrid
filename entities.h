@@ -5,9 +5,11 @@
 #include "constants.h"
 #include "hexgrid.h"
 
-class Map;
+class GameMap;
 class HexTile;
 class Track;
+
+enum class TrackCurveType {Straight, CurveLeft, CurveRight };
 
 class Track {
     HexTile* hexTile;
@@ -21,14 +23,14 @@ public:
 enum class TileType { Dirt, Grass, Wall, Water };
 
 class HexTile {
-    Map *map;
+    GameMap *map;
     TileType tileType;
     vector2i axialPos;
     boost::shared_ptr<Track> track;
 public:
     HexTile();
-    HexTile(TileType _tileType, vector2i _axialPos, Map *_map);
-    Map *refMap();
+    HexTile(TileType _tileType, vector2i _axialPos, GameMap *_map);
+    GameMap *refMap();
     boost::shared_ptr<Track> refTrack();
     void setTrack(boost::shared_ptr<Track> track);
     vector2i coAxialPos();
@@ -37,12 +39,12 @@ public:
     void drawAtPos();
 };
 
-class Map {
+class GameMap {
     float tileCircumradius;
     vector2i dimensions;
     HexTile tiles[MAX_MAP_DIM][MAX_MAP_DIM];
 public:
-    Map(float _tileCircumradius, int width, int height);
+    GameMap(float _tileCircumradius, int width, int height);
     void generate();
     HexTile* refTile(vector2i axial);
     // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
