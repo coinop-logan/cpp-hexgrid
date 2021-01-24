@@ -2,14 +2,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <math.h>
-#include "myvectors.h"
-#include "hexgrid.h"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
+#include "myvectors.h"
+#include "constants.h"
+#include "hexgrid.h"
+#include "entities.h"
 
 using namespace std;
-
-const float DEG2RAD = 3.14159/180;
 
 void drawFTHex(float circumRadius) {
     glBegin(GL_TRIANGLE_FAN);
@@ -49,128 +49,87 @@ void drawPTHexBorder(float circumRadius) {
     glEnd();
 }
 
-class Map;
-class HexTile;
-class Track;
+Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) {
+    hexTile = _hexTile;
+    startDir = _startDir;
+    for (int i=0; i<sizeof(exits); i++) {
+        exits[i] = _exits[i];
+    }
+}
+void Track::draw() {
+    if (exits[0]) {
+        ptHexGrid::Direction towardNeighborForCircleCenter = dirTurnedCCW(startDir, 2);
+        vector2i neighborAxial = ptHexGrid::getNeighborInDirection(hexTile->coAxialPos(), towardNeighborForCircleCenter);
+        vector2f circleDrawCenter = hexTile->refMap()->refTile(neighborAxial)->coMapPos();
+        ptHexGrid::Direction towardArc = ptHexGrid::reverseDirection(towardNeighborForCircleCenter);
+        float arcStartAngle = ptHexGrid::directionToAngle(towardArc) - M_PI/6;
+        float circleDrawRadius = hexTile->refMap()->coTileCircumradius() * 1.1;
 
-// class Track {
-//     HexTile* hexTile;
-//     ptHexGrid::Direction startDir;
-//     bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
-// public:
-//     Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) {
-//         hexTile = _hexTile;
-//         startDir = _startDir;
-//         for (int i=0; i<sizeof(exits); i++) {
-//             exits[i] = _exits[i];
-//         }
-//     }
-//     void draw() {
-//         if (exits[0]) {
-//             ptHexGrid::Direction towardNeighborForCircleCenter = dirTurnedCCW(startDir, 2);
-//             vector2i neighborAxial = ptHexGrid::getNeighborInDirection(hexTile->coAxialPos(), towardNeighborForCircleCenter);
-//             vector2f circleDrawCenter = hexTile->refMap()->refTile(neighborAxial)->coMapPos();
-//             ptHexGrid::Direction towardArc = ptHexGrid::reverseDirection(towardNeighborForCircleCenter);
-//             float arcStartAngle = ptHexGrid::directionToAngle(towardArc) - M_PI/6;
-//             float circleDrawRadius = hexTile->refMap()->coTileCircumradius() * 1.1;
-
-//             glTranslatef(circleDrawCenter.x, circleDrawCenter.y, 0);
-//             glBegin(GL_LINES);
-//             glColor3f(0,0,1);
-//             for (int i=0; i <= RAIL_CURVE_NUM_POINTS; i++) {
-//                 float angle = arcStartAngle + ((float(i) / RAIL_CURVE_NUM_POINTS) * (M_PI/3));
-//                 glVertex2f(cos(angle) * circleDrawRadius, -sin(angle) * circleDrawRadius);
-//             }
-//             glEnd();
-//         }
-//     }
-// };
-
-enum class TileType { Dirt, Grass, Wall, Water };
-
-class HexTile {
-    Map *map;
-    TileType tileType;
-    vector2i axialPos;
-    boost::shared_ptr<Track> track;
-public:
-    HexTile();
-    HexTile(TileType _tileType, vector2i _axialPos, Map *_map);
-    Map *refMap();
-    boost::shared_ptr<Track> refTrack();
-    void setTrack(boost::shared_ptr<Track> track);
-    vector2i coAxialPos();
-    vector2f coMapPos();
-    void drawHere();
-    void drawAtPos();
-};
-
-const int MAX_MAP_DIM = 100;
-
-class Map {
-    float tileCircumradius;
-    vector2i dimensions;
-    HexTile tiles[MAX_MAP_DIM][MAX_MAP_DIM];
-
-    // void setScale(float _tileCircumradius) {
-    //     tileCircumradius = _tileCircumradius;
-    // }
-public:
-    Map(float _tileCircumradius, int width, int height) {
-        if ( width >= MAX_MAP_DIM || height >= MAX_MAP_DIM) {
-            throw "Map dimensions exceed max";
+        glTranslatef(circleDrawCenter.x, circleDrawCenter.y, 0);
+        glBegin(GL_LINES);
+        glColor3f(0,0,1);
+        for (int i=0; i <= RAIL_CURVE_NUM_POINTS; i++) {
+            float angle = arcStartAngle + ((float(i) / RAIL_CURVE_NUM_POINTS) * (M_PI/3));
+            glVertex2f(cos(angle) * circleDrawRadius, -sin(angle) * circleDrawRadius);
         }
+        glEnd();
+    }
+}
 
-        dimensions = vector2i(width, height);
-        tileCircumradius = _tileCircumradius;
-        // cout << width << "," << height << endl;
-        for (int q=0; q < width; q++) {
-            for (int r=0; r < height; r++) {
-                // cout << q << "," << r << endl;
-                TileType type = TileType::Dirt;
+Map::Map(float _tileCircumradius, int width, int height) {
+    if ( width >= MAX_MAP_DIM || height >= MAX_MAP_DIM) {
+        throw "Map dimensions exceed max";
+    }
 
-                if ((q == 0 || r%4 == 0) && q !=5) {
-                    type = TileType::Wall;
-                }
-                if (r + q == 25) {
-                    type = TileType::Water;
-                }
+    dimensions = vector2i(width, height);
+    tileCircumradius = _tileCircumradius;
+    // cout << width << "," << height << endl;
+    for (int q=0; q < width; q++) {
+        for (int r=0; r < height; r++) {
+            // cout << q << "," << r << endl;
+            TileType type = TileType::Dirt;
 
-                tiles[q][r] = HexTile(type, vector2i(q,r), this);
+            if ((q == 0 || r%4 == 0) && q !=5) {
+                type = TileType::Wall;
             }
-        }
-    }
-    void generate() {
-
-    }
-    HexTile* refTile(vector2i axial) {
-        if (axial.x >= dimensions.x || axial.y >= dimensions.y) {
-            throw "axial pos out of map bounds";
-        }
-        return &(tiles[axial.x][axial.y]);
-    }
-    // use of 'coVar' convention to indicate copies (to help track mutability and side effects)
-    float coTileCircumradius() { // 'copy of circumRadius'
-        return tileCircumradius;
-    }
-    float coScale() { // helpful synonym
-        return coTileCircumradius();
-    }
-    float coTileLongwidth() {
-        return tileCircumradius * 2;
-    }
-    float coTileShortwidth() {
-        return coTileLongwidth() * 3.0/4.0;
-    }
-
-    void drawHere() {
-        for (int q=0; q < dimensions.x; q++) {
-            for (int r=0; r < dimensions.y; r++) {
-                tiles[q][r].drawAtPos();
+            if (r + q == 25) {
+                type = TileType::Water;
             }
+
+            tiles[q][r] = HexTile(type, vector2i(q,r), this);
         }
     }
-};
+}
+void Map::generate() {
+
+}
+HexTile* Map::refTile(vector2i axial) {
+    if (axial.x >= dimensions.x || axial.y >= dimensions.y) {
+        throw "axial pos out of map bounds";
+    }
+    return &(tiles[axial.x][axial.y]);
+}
+// use of 'coVar' convention to indicate copies (to help track mutability and side effects)
+float Map::coTileCircumradius() { // 'copy of circumRadius'
+    return tileCircumradius;
+}
+float Map::coScale() { // helpful synonym
+    return coTileCircumradius();
+}
+float Map::coTileLongwidth() {
+    return tileCircumradius * 2;
+}
+float Map::coTileShortwidth() {
+    return coTileLongwidth() * 3.0/4.0;
+}
+
+void Map::drawHere() {
+    for (int q=0; q < dimensions.x; q++) {
+        for (int r=0; r < dimensions.y; r++) {
+            tiles[q][r].drawAtPos();
+        }
+    }
+}
 
 HexTile::HexTile(TileType _tileType, vector2i _axialPos, Map *_map) {
     tileType = _tileType;

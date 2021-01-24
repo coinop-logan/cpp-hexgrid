@@ -8,15 +8,18 @@ namespace ptHexGrid {
         Right, UpRight, UpLeft, Left, DownLeft, DownRight
     };
 
+    float directionToAngle(Direction dir);
     Direction dirTurnedCCWOnce(Direction dir);
     Direction dirTurnedCWOnce(Direction dir);
     Direction dirTurnedCCW(Direction dir, int numTimes);
     Direction dirTurnedCW(Direction dir, int numTimes);
     Direction dirTurned(Direction dir, int signedNumTimes);
+    Direction reverseDirection(Direction dir);
     vector2i getNeighborInDirection(vector2i startAxial, Direction dir);
     const vector2f qBasis(sqrt(3), 0);
     const vector2f rBasis(sqrt(3)/2.0, 3/2.0);
     vector2f axialToReal(vector2i axial, float circumRadius);
+    
 }
 
 namespace ftHexGrid {

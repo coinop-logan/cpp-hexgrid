@@ -48,6 +48,29 @@ namespace ptHexGrid {
         }
     }
 
+    float directionToAngle(Direction dir) {
+        switch (dir) {
+            case Right:
+                return 0;
+                break;
+            case UpRight:
+                return (M_PI/3.0) * 1;
+                break;
+            case UpLeft:
+                return (M_PI/3.0) * 2;
+                break;
+            case Left:
+                return (M_PI/3.0) * 3;
+                break;
+            case DownLeft:
+                return (M_PI/3.0) * 4;
+                break;
+            case DownRight:
+                return (M_PI/3.0) * 5;
+                break;
+        }
+    }
+
     Direction dirTurnedCCW(Direction dir, int numTimes) {
         for (int i=0; i<numTimes; i++) {
             dir = dirTurnedCCWOnce(dir);
@@ -63,11 +86,35 @@ namespace ptHexGrid {
     }
 
     Direction dirTurned(Direction dir, int signedNumTimes) {
+
         if (signedNumTimes > 0) {
             return dirTurnedCW(dir, signedNumTimes);
         }
         else {
             return dirTurnedCCW(dir, -signedNumTimes);
+        }
+    }
+
+    Direction reverseDirection(Direction dir) {
+        switch (dir) {
+            case UpRight:
+                return DownLeft;
+                break;
+            case UpLeft:
+                return DownRight;
+                break;
+            case Left:
+                return Right;
+                break;
+            case DownLeft:
+                return UpRight;
+                break;
+            case DownRight:
+                return UpLeft;
+                break;
+            case Right:
+                return Left;
+                break;
         }
     }
 
