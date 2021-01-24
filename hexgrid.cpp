@@ -24,7 +24,6 @@ namespace ptHexGrid {
                 break;
         }
     }
-
     vector2i directionToAxial(Direction dir) {
         switch (dir) {
             case Right:

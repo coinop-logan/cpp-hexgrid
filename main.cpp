@@ -58,12 +58,20 @@ Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) 
 }
 void Track::drawHere() {
     if (exits[0]) {
+        float circumradius = hexTile->refMap()->coTileCircumradius();
+
+        // find the center of the circle to draw the arc from - a nearby tile neighbor.
         ptHexGrid::Direction towardNeighborForCircleCenter = dirTurnedCCW(startDir, 2);
         vector2i circleCenterAxial = ptHexGrid::directionToAxial(towardNeighborForCircleCenter);
-        vector2f circleCenter = ptHexGrid::axialToReal(circleCenterAxial, hexTile->refMap()->coTileCircumradius());
+        vector2f circleCenter = ptHexGrid::axialToReal(circleCenterAxial, circumradius);
+
+        // define some radii for the arcs to draw
+        float trackCenterArcRadius = circumradius * 1.5;
+        float trackInsideArcRadius = trackCenterArcRadius - circumradius * 0.15;
+        float trackOutsideArcRadius = trackCenterArcRadius + circumradius * 0.15;
+
         ptHexGrid::Direction towardArc = ptHexGrid::reverseDirection(towardNeighborForCircleCenter);
         float arcStartAngle = ptHexGrid::directionToAngle(towardArc) - M_PI/6;
-        float arcDrawRadius = hexTile->refMap()->coTileCircumradius() * 1.1;
 
         glPushMatrix();
             glTranslatef(circleCenter.x, circleCenter.y, 0);
@@ -71,7 +79,14 @@ void Track::drawHere() {
                 glColor3f(0,0,1);
                 for (int i=0; i <= RAIL_CURVE_NUM_POINTS; i++) {
                     float angle = arcStartAngle + ((float(i) / RAIL_CURVE_NUM_POINTS) * (M_PI/3));
-                    glVertex2f(cos(angle) * arcDrawRadius, -sin(angle) * arcDrawRadius);
+                    glVertex2f(cos(angle) * trackInsideArcRadius, -sin(angle) * trackInsideArcRadius);
+                }
+            glEnd();
+            glBegin(GL_LINE_STRIP);
+                glColor3f(0,0,1);
+                for (int i=0; i <= RAIL_CURVE_NUM_POINTS; i++) {
+                    float angle = arcStartAngle + ((float(i) / RAIL_CURVE_NUM_POINTS) * (M_PI/3));
+                    glVertex2f(cos(angle) * trackOutsideArcRadius, -sin(angle) * trackOutsideArcRadius);
                 }
             glEnd();
         glPopMatrix();
