@@ -199,7 +199,14 @@ boost::shared_ptr<Track> tryCombineTracks(boost::shared_ptr<Track> existingTrack
             }
         }
         else if (existingTrack->numExits() == 2) {
-            //todo: try!
+            if (existingTrack->coInDir() == inDir) {
+                existingTrack->addExit(curveType);
+                return existingTrack;
+            }
+            else if (existingTrack->coInDir() == ptHexGrid::reverseDirection(calculateCurveOutDir(inDir, curveType))) {
+                existingTrack->addExit(flipTrackCurve(curveType));
+                return existingTrack;
+            }
             return boost::shared_ptr<Track>();
         }
         else if (existingTrack->numExits() == 3) {
