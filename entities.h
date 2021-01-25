@@ -13,10 +13,18 @@ enum class TrackCurveType {Straight, CurveLeft, CurveRight };
 
 class Track {
     HexTile* hexTile;
-    ptHexGrid::Direction startDir;
+    ptHexGrid::Direction inDir;
     bool exits[3]; // 0=left-curve, 1=straight, 2=right-curve
+    void init(HexTile* _hexTile, ptHexGrid::Direction _startDir);
 public:
+    Track(HexTile* _hexTile, ptHexGrid::Direction _startDir);
     Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]);
+    int numExits();
+    ptHexGrid::Direction coInDir();
+    ptHexGrid::Direction calculateOutDir(TrackCurveType curveType);
+    void addExit(TrackCurveType curveType);
+    std::unique_ptr<TrackCurveType> getFirstExitCurveType();
+    HexTile* refHexTile();
     void drawHere();
 };
 

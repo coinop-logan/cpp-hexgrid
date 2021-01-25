@@ -46,9 +46,9 @@ void drawPTHexBorder(float circumRadius) {
     glEnd();
 }
 
-void drawCurvedTrack(ptHexGrid::Direction startDir, bool left, float circumradius) {
+void drawCurvedTrack(ptHexGrid::Direction inDir, bool left, float circumradius) {
     // find the center of the circle to draw the arc from - a nearby tile neighbor.
-    ptHexGrid::Direction towardNeighborForCircleCenter = dirTurned(startDir, left ? -2 : 2);
+    ptHexGrid::Direction towardNeighborForCircleCenter = dirTurned(inDir, left ? -2 : 2);
     vector2i circleCenterAxial = ptHexGrid::directionToAxial(towardNeighborForCircleCenter);
     vector2f circleCenter = ptHexGrid::axialToReal(circleCenterAxial, circumradius);
 
@@ -102,17 +102,17 @@ void Track::drawHere() {
     float circumradius = hexTile->refMap()->coTileCircumradius();
     if (exits[0]) {
         drawCurvedTrack(
-            startDir,
+            inDir,
             true,
             circumradius
         );
     }
     if (exits[1]) {
-        drawStraightTrack(startDir, circumradius);
+        drawStraightTrack(inDir, circumradius);
     }
     if (exits[2]) {
         drawCurvedTrack(
-            startDir,
+            inDir,
             false,
             circumradius
         );
@@ -201,7 +201,7 @@ void draw(GameMap *map) {
 
     glEnable2D();
     glPushMatrix();
-    glTranslatef(100,-500,0);
+    glTranslatef(100,100,0);
     map->drawHere();
     glPopMatrix();
     glDisable2D();

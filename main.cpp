@@ -10,12 +10,86 @@
 
 using namespace std;
 
-Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) {
+ptHexGrid::Direction calculateCurveOutDir(ptHexGrid::Direction inDir, TrackCurveType curveType) {
+    switch (curveType) {
+        case TrackCurveType::CurveLeft:
+            return ptHexGrid::dirTurnedCCWOnce(inDir);
+            break;
+        case TrackCurveType::Straight:
+            return inDir;
+            break;
+        case TrackCurveType::CurveRight:
+            return ptHexGrid::dirTurnedCWOnce(inDir);
+            break;
+    }
+}
+TrackCurveType flipTrackCurve(TrackCurveType curveType) {
+    switch (curveType) {
+        case TrackCurveType::CurveLeft:
+            return TrackCurveType::CurveRight;
+            break;
+        case TrackCurveType::Straight:
+            return TrackCurveType::Straight;
+            break;
+        case TrackCurveType::CurveRight:
+            return TrackCurveType::CurveLeft;
+            break;
+    }
+}
+
+int Track::numExits() {
+    int count = 0;
+    for (int i=0; i<3; i++) {
+        if (exits[i]) count++;
+    }
+    return count;
+}
+void Track::init(HexTile* _hexTile, ptHexGrid::Direction _startDir) {
     hexTile = _hexTile;
-    startDir = _startDir;
+    inDir = _startDir;
+}
+Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir, bool _exits[3]) {
+    init(_hexTile, _startDir);
     for (int i=0; i<sizeof(exits); i++) {
         exits[i] = _exits[i];
     }
+}
+Track::Track(HexTile* _hexTile, ptHexGrid::Direction _startDir) {
+    init(_hexTile, _startDir);
+    for (int i=0; i<sizeof(exits); i++) {
+        exits[i] = 0;
+    }
+}
+ptHexGrid::Direction Track::coInDir() {
+    return inDir;
+}
+ptHexGrid::Direction Track::calculateOutDir(TrackCurveType curveType) {
+    return calculateCurveOutDir(inDir, curveType);
+}
+int curveTypeToIter(TrackCurveType curveType) {
+    switch (curveType) {
+        case TrackCurveType::CurveLeft:
+            return 0;
+            break;
+        case TrackCurveType::Straight:
+            return 1;
+            break;
+        case TrackCurveType::CurveRight:
+            return 2;
+            break;
+    }
+}
+void Track::addExit(TrackCurveType curveType) {
+    exits[curveTypeToIter(curveType)] = true;
+}
+std::unique_ptr<TrackCurveType> Track::getFirstExitCurveType() {
+    if (exits[0]) return std::unique_ptr<TrackCurveType>(new TrackCurveType(TrackCurveType::CurveLeft));
+    if (exits[1]) return std::unique_ptr<TrackCurveType>(new TrackCurveType(TrackCurveType::Straight));
+    if (exits[2]) return std::unique_ptr<TrackCurveType>(new TrackCurveType(TrackCurveType::CurveRight));
+    return std::unique_ptr<TrackCurveType>(); // return empty if no exits
+}
+HexTile* Track::refHexTile() {
+    return hexTile;
 }
 
 GameMap::GameMap(float _tileCircumradius, int width, int height) {
@@ -36,9 +110,9 @@ void GameMap::generate() {
             if ((q == 0 || r%4 == 0) && q !=5) {
                 type = TileType::Wall;
             }
-            if (r + q == 25) {
-                type = TileType::Water;
-            }
+            // if (r + q == 25) {
+            //     type = TileType::Water;
+            // }
 
             tiles[q][r] = HexTile(type, vector2i(q,r), this);
         }
@@ -95,7 +169,47 @@ GameMap gameMap(32, 50, 50);
 HexTile* currentTile;
 ptHexGrid::Direction currentDir;
 
-void layTrack(TrackCurveType curveType) {
+bool *flipExits(bool exits[3]) {
+    // but actually this should either modify the array (yuck) or use a vector.
+}
+
+boost::shared_ptr<Track> tryCombineTracks(boost::shared_ptr<Track> existingTrack, ptHexGrid::Direction inDir, TrackCurveType curveType) {
+    if (std::unique_ptr<TrackCurveType> firstExitCurveTypePtr = existingTrack->getFirstExitCurveType()) {
+        TrackCurveType firstExitCurveType = *firstExitCurveTypePtr;
+        if (existingTrack->numExits() == 1) {
+            if (existingTrack->coInDir() == inDir) {
+                existingTrack->addExit(curveType);
+                return existingTrack;
+            }
+            else if (existingTrack->coInDir() == ptHexGrid::reverseDirection(calculateCurveOutDir(inDir, curveType))) {
+                existingTrack->addExit(flipTrackCurve(curveType));
+                return existingTrack;
+            }
+            else if (existingTrack->calculateOutDir(firstExitCurveType) == ptHexGrid::reverseDirection(inDir)) {
+                boost::shared_ptr<Track> newTrack(new Track(existingTrack->refHexTile(), inDir));
+                newTrack->addExit(flipTrackCurve(firstExitCurveType));
+                newTrack->addExit(curveType);
+                return newTrack;
+            }
+            else if (existingTrack->calculateOutDir(firstExitCurveType) == calculateCurveOutDir(inDir, curveType)) {
+                boost::shared_ptr<Track> newTrack(new Track(existingTrack->refHexTile(), ptHexGrid::reverseDirection(existingTrack->calculateOutDir(firstExitCurveType))));
+                newTrack->addExit(flipTrackCurve(firstExitCurveType));
+                newTrack->addExit(flipTrackCurve(curveType));
+                return newTrack;
+            }
+        }
+        else if (existingTrack->numExits() == 2) {
+            //todo: try!
+            return boost::shared_ptr<Track>();
+        }
+        else if (existingTrack->numExits() == 3) {
+            return boost::shared_ptr<Track>();
+        }
+    }
+    return boost::shared_ptr<Track>();
+}
+
+void tryLayTrack(TrackCurveType curveType) {
     ptHexGrid::Direction nextTileDir;
     bool trackExits[] = { false, false, false};
 
@@ -114,16 +228,33 @@ void layTrack(TrackCurveType curveType) {
             break;
     }
 
-    currentTile->setTrack(boost::shared_ptr<Track>(new Track(currentTile, currentDir, trackExits)));
-    currentTile = gameMap.refTile(ptHexGrid::getNeighborInDirection(currentTile->coAxialPos(), nextTileDir));
-    currentDir = nextTileDir;
+    boost::shared_ptr<Track> maybeNewTrack;
+
+    // try to combine, if successful overwrite
+    if (boost::shared_ptr<Track> existingTrack = currentTile->refTrack()) {
+        boost::shared_ptr<Track> maybeCombinedTrack = tryCombineTracks(existingTrack, currentDir, curveType);
+        if (maybeCombinedTrack) {
+            maybeNewTrack = maybeCombinedTrack;
+        }
+    }
+    else {
+        maybeNewTrack = boost::shared_ptr<Track>(new Track(currentTile, currentDir, trackExits));
+    }
+
+    if (maybeNewTrack) {
+        currentTile->setTrack(maybeNewTrack);
+
+        // change currentTile pointer
+        currentTile = gameMap.refTile(ptHexGrid::getNeighborInDirection(currentTile->coAxialPos(), nextTileDir));
+        currentDir = nextTileDir;
+    }
 }
 
 int main (int argc, char **argv) {
     gameMap.generate();
 
     currentDir = ptHexGrid::Right;
-    currentTile = gameMap.refTile(vector2i(1, 22));
+    currentTile = gameMap.refTile(vector2i(1, 1));
 
     // cout << hexTile1.refMap()->coTileLongwidth() << endl << endl;
 
@@ -150,13 +281,13 @@ int main (int argc, char **argv) {
                 case sf::Event::KeyPressed:
                     switch (event.key.code) {
                         case sf::Keyboard::Up:
-                            layTrack(TrackCurveType::Straight);
+                            tryLayTrack(TrackCurveType::Straight);
                             break;
                         case sf::Keyboard::Left:
-                            layTrack(TrackCurveType::CurveLeft);
+                            tryLayTrack(TrackCurveType::CurveLeft);
                             break;
                         case sf::Keyboard::Right:
-                            layTrack(TrackCurveType::CurveRight);
+                            tryLayTrack(TrackCurveType::CurveRight);
                             break;
                     }
                     break;
