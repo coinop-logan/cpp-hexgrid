@@ -1,5 +1,4 @@
 # do soon
-tryCombineTracks to support adding third exit
 Clean up / organize code
     track logic
     interface / ux?
@@ -7,11 +6,13 @@ Clean up / organize code
 # next goals
 polish track-laying UX
     track plan
-        similar to user as now, but doesn't store tracks in tiles
+        similar to user as now, but
+            doesn't store tracks in tiles
+            maintains list, which is iterated through and checked, for collisions
         highlight where 'cursor' is
         starts at factory tile
         Hitting enter cements plan and starts building
-            Would be so cool if these get built out slowly, starting from a factory position...
+            Would be so cool if these get built out slowly
         escape deletes plan and returns to last built track or factory
 drive car on track
     manual
