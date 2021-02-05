@@ -63,4 +63,17 @@ public:
     void drawHere();
 };
 
+class Cart {
+    boost::shared_ptr<Track> currentTrack;
+    float trackPosition;
+    int trackExit;
+    float speed;
+public:
+    Cart(boost::shared_ptr<Track> _currentTrack, float _trackPosition, int trackExit);
+    boost::shared_ptr<Track> refTrack();
+    void go();
+    void drawHere();
+    void drawAtPos();
+};
+
 #endif

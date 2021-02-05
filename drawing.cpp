@@ -162,6 +162,22 @@ void HexTile::drawAtPos() {
     glPopMatrix();
 }
 
+void Cart::drawHere() {
+    // get tile
+}
+void Cart::drawAtPos() {
+    
+    // get tile offset
+    // get offset of trackPos at track at exit
+    // get rotation too...
+    
+    glPushMatrix();
+    // glTranslatef(offset.x, offset.y, 0);
+    // glRotate(wut)
+    drawHere();
+    glPopMatrix();
+}
+
 void glEnable2D() {
     GLint iViewport[4];
 

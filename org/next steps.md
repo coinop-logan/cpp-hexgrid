@@ -1,6 +1,5 @@
 # do soon
 Clean up / organize code
-    track logic
     interface / ux?
 
 # next goals

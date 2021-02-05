@@ -257,6 +257,23 @@ void tryLayTrack(TrackCurveType curveType) {
     }
 }
 
+Cart::Cart(boost::shared_ptr<Track> _currentTrack, float _trackPosition, int _trackExit)
+    : currentTrack(_currentTrack), trackPosition(_trackPosition), trackExit(_trackExit), speed(0)
+    {}
+
+boost::shared_ptr<Track> Cart::refTrack() {
+    return currentTrack;
+}
+
+void Cart::go() {
+    trackPosition += speed
+    if (trackPosition < 0 || trackPosition > 1) {
+        // switch to next track and exit (or crash?)
+            // which means finding next track...
+        // negate speed if track is pointed opposite way
+    }
+}
+
 int main (int argc, char **argv) {
     gameMap.generate();
 
