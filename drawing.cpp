@@ -129,11 +129,12 @@ void GameMap::drawHere() {
 
 void HexTile::drawHere() {
     switch (tileType) {
-        case TileType::Dirt:
-            glColor3f(.6, .4, 0);
+        case TileType::Clear:
+            glColor3f(0.5, 1, 0.5);
             break;
-        case TileType::Grass:
-            glColor3f(0,1,0);
+        case TileType::Ore:
+            //165,42,42
+            glColor3f(0.5,0.2,0.2);
             break;
         case TileType::Wall:
             glColor3f(0.4,0.4,0.4);

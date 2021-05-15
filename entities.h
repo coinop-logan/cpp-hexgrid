@@ -28,7 +28,7 @@ public:
     void drawHere();
 };
 
-enum class TileType { Dirt, Grass, Wall, Water };
+enum class TileType { Clear, Ore, Wall, Water };
 
 class HexTile {
     GameMap *map;
@@ -39,6 +39,7 @@ public:
     HexTile();
     HexTile(TileType _tileType, vector2i _axialPos, GameMap *_map);
     GameMap *refMap();
+    TileType getTileType();
     boost::shared_ptr<Track> refTrack();
     void setTrack(boost::shared_ptr<Track> track);
     vector2i coAxialPos();
@@ -61,6 +62,7 @@ public:
     float coTileLongwidth();
     float coTileShortwidth();
     void drawHere();
+    bool axialIsInBounds(vector2i);
 };
 
 class Cart {

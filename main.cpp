@@ -105,16 +105,35 @@ void GameMap::generate() {
     for (int q=0; q < dimensions.x; q++) {
         for (int r=0; r < dimensions.y; r++) {
             // cout << q << "," << r << endl;
-            TileType type = TileType::Dirt;
+            TileType type = TileType::Clear;
 
-            if ((q == 0 || r%4 == 0) && q !=5) {
+            if (q == 0 || r == 0 || q == 15 || r == 15) {
                 type = TileType::Wall;
             }
-            // if (r + q == 25) {
-            //     type = TileType::Water;
-            // }
 
             tiles[q][r] = HexTile(type, vector2i(q,r), this);
+        }
+    }
+
+    //generate river
+    vector2i axial(0, 15);
+    ptHexGrid::Direction dir = ptHexGrid::Direction::UpRight;
+    while (this->axialIsInBounds(axial)) {
+        tiles[axial.x][axial.y] = HexTile(TileType::Water, axial, this);
+        
+        // maybe change dir
+        
+        int turnRoll = rand() % 20;
+        if (turnRoll < 5) dir = ptHexGrid::dirTurnedCWOnce(dir);
+        else if (turnRoll < 10) dir = ptHexGrid::dirTurnedCCWOnce(dir);
+        axial += ptHexGrid::directionToAxial(dir);
+    }
+
+    //sprinkle ore
+    for (int i=0; i<20; i++) {
+        axial = vector2i(rand() % 16, rand() % 16);
+        if (tiles[axial.x][axial.y].getTileType() != TileType::Water) {
+            tiles[axial.x][axial.y] = HexTile(TileType::Ore, axial, this);
         }
     }
 }
@@ -137,6 +156,9 @@ float GameMap::coTileLongwidth() {
 float GameMap::coTileShortwidth() {
     return coTileLongwidth() * 3.0/4.0;
 }
+bool GameMap::axialIsInBounds(vector2i axial) {
+    return !(axial.x < 0 || axial.y < 0 || axial.x >= this->dimensions.x || axial.y >= this->dimensions.y);
+}
 
 HexTile::HexTile(TileType _tileType, vector2i _axialPos, GameMap *_map) {
     tileType = _tileType;
@@ -147,6 +169,9 @@ HexTile::HexTile() {}
 
 GameMap* HexTile::refMap() {
     return map;
+}
+TileType HexTile::getTileType() {
+    return tileType;
 }
 boost::shared_ptr<Track> HexTile::refTrack() {
     return track;
@@ -274,7 +299,11 @@ void Cart::go() {
     }
 }
 
+int seed = 0;
+
 int main (int argc, char **argv) {
+    if (seed == 0) srand(time(NULL));
+    else srand(seed);
     gameMap.generate();
 
     currentDir = ptHexGrid::Right;
@@ -313,6 +342,8 @@ int main (int argc, char **argv) {
                         case sf::Keyboard::Right:
                             tryLayTrack(TrackCurveType::CurveRight);
                             break;
+                        case sf::Keyboard::Space:
+                            gameMap.generate();
                     }
                     break;
             }
