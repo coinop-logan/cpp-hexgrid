@@ -165,7 +165,7 @@ vector2f HexTile::coMapPos() {
     );
 }
 
-GameMap gameMap(32, 50, 50);
+GameMap gameMap(32, 16, 16);
 HexTile* currentTile;
 ptHexGrid::Direction currentDir;
 
@@ -266,7 +266,7 @@ boost::shared_ptr<Track> Cart::refTrack() {
 }
 
 void Cart::go() {
-    trackPosition += speed
+    trackPosition += speed;
     if (trackPosition < 0 || trackPosition > 1) {
         // switch to next track and exit (or crash?)
             // which means finding next track...
