@@ -221,7 +221,7 @@ void draw(GameMap *map) {
 
     glEnable2D();
     glPushMatrix();
-    glTranslatef(-300,-300,0);
+    glTranslatef(map->coTileLongwidth(), map->coTileLongwidth(),0);
     map->drawHere();
     glPopMatrix();
     glDisable2D();

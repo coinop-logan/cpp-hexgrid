@@ -116,7 +116,7 @@ void GameMap::generate() {
     }
 
     //generate river
-    vector2i axial(0, 99);
+    vector2i axial(0, this->dimensions.x - 1);
     ptHexGrid::Direction dir = ptHexGrid::Direction::UpRight;
     while (this->axialIsInBounds(axial)) {
         tiles[axial.x][axial.y] = HexTile(TileType::Water, axial, this);
@@ -196,7 +196,7 @@ vector2f HexTile::coMapPos() {
     );
 }
 
-GameMap gameMap(8, 100, 100);
+GameMap gameMap(8, 76, 76);
 HexTile* currentTile;
 ptHexGrid::Direction currentDir;
 
