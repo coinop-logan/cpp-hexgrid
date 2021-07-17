@@ -142,6 +142,9 @@ void HexTile::drawHere() {
         case TileType::Water:
             glColor3f(0, 0, 1);
             break;
+        case TileType::ShotGlass:
+            glColor3f(0, 0, 1);
+            break;
         default:
             throw "HexTile::drawHere: unrecognized tileType";
     }
@@ -218,13 +221,14 @@ void draw(GameMap *map) {
 
     glEnable2D();
     glPushMatrix();
-    glTranslatef(100,100,0);
+    glTranslatef(-300,-300,0);
     map->drawHere();
     glPopMatrix();
     glDisable2D();
 }
 
 // stupid expensive, reduce iterations before use!
+
 // void drawCircle(float radius) {
 //     glBegin(GL_TRIANGLE_FAN);
 //     for (int i=0; i<360; i++) {

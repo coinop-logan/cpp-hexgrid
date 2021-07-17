@@ -28,7 +28,7 @@ public:
     void drawHere();
 };
 
-enum class TileType { Clear, Ore, Wall, Water };
+enum class TileType { Clear, Ore, Wall, Water, ShotGlass };
 
 class HexTile {
     GameMap *map;

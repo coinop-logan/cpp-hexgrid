@@ -107,7 +107,7 @@ void GameMap::generate() {
             // cout << q << "," << r << endl;
             TileType type = TileType::Clear;
 
-            if (q == 0 || r == 0 || q == 15 || r == 15) {
+            if (q == 0 || r == 0 || q == this->dimensions.x - 1 || r == this->dimensions.y - 1) {
                 type = TileType::Wall;
             }
 
@@ -116,10 +116,16 @@ void GameMap::generate() {
     }
 
     //generate river
-    vector2i axial(0, 15);
+    vector2i axial(0, 99);
     ptHexGrid::Direction dir = ptHexGrid::Direction::UpRight;
     while (this->axialIsInBounds(axial)) {
         tiles[axial.x][axial.y] = HexTile(TileType::Water, axial, this);
+
+        // roll for ShotGlass
+        int shotRoll = rand() % 5;
+        if (shotRoll == 0) {
+            tiles[axial.x][axial.y] = HexTile(TileType::ShotGlass, axial, this);
+        }
         
         // maybe change dir
         
@@ -131,7 +137,7 @@ void GameMap::generate() {
 
     //sprinkle ore
     for (int i=0; i<20; i++) {
-        axial = vector2i(rand() % 16, rand() % 16);
+        axial = vector2i(rand() % this->dimensions.x, rand() % this->dimensions.x);
         if (tiles[axial.x][axial.y].getTileType() != TileType::Water) {
             tiles[axial.x][axial.y] = HexTile(TileType::Ore, axial, this);
         }
@@ -190,7 +196,7 @@ vector2f HexTile::coMapPos() {
     );
 }
 
-GameMap gameMap(32, 16, 16);
+GameMap gameMap(8, 100, 100);
 HexTile* currentTile;
 ptHexGrid::Direction currentDir;
 
